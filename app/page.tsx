@@ -1,66 +1,33 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+import { CAR_INFO, PRIORITIES } from "@/lib/data";
 
 export default function Home() {
+  const totalItems = PRIORITIES.reduce((sum, p) => sum + p.items.length, 0);
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.tsx file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="app">
+      <div className="topbar">
+        <div className="brand">
+          <span className="brand-mark" aria-hidden="true" />
+          <span>Garage OS · v0.1</span>
         </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </div>
+
+      <section className="panel">
+        <div className="panel-label">Veículo</div>
+        <h1 className="car-name">
+          {CAR_INFO.model}{" "}
+          <span style={{ color: "var(--fg-dim)" }}>{CAR_INFO.year}</span>
+        </h1>
+        <div className="car-sub">
+          <span><i />{CAR_INFO.engine}</span>
+          <span>{CAR_INFO.km.toLocaleString("pt-BR")} km</span>
+          <span>{PRIORITIES.length} prioridades · {totalItems} itens</span>
         </div>
-      </main>
-    </div>
+      </section>
+
+      <p style={{ marginTop: 24, color: "var(--fg-faint)", fontFamily: "var(--font-mono)", fontSize: 12 }}>
+        // Passo B concluído — dados, tipos, estilos e fontes carregados.
+      </p>
+    </main>
   );
 }
