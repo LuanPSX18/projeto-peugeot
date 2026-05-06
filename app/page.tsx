@@ -21,11 +21,11 @@ type Theme = "dark" | "light";
 export default function Home() {
   const [theme, setTheme] = usePersistentState<Theme>("pejo:theme", "dark");
   const [showMoney, setShowMoney] = usePersistentState<boolean>("pejo:showMoney", true);
-  const [itemsState, setItemsState] = usePersistentState<ItemsState>("pejo:items", {});
-  const [alertDismissed, setAlertDismissed] = usePersistentState<boolean>(
-    "pejo:alertDismissed",
-    false,
-  );
+
+  const [itemsState, setItemsState] = useState<ItemsState>({});
+  const [alertDismissed, setAlertDismissed] = useState<boolean>(false);
+  const [serverKm, setServerKm] = useState<number | null>(null);
+  const [loaded, setLoaded] = useState(false);
 
   const [status, setStatus] = useState<StatusFilter>("all");
   const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>("all");
@@ -35,15 +35,70 @@ export default function Home() {
     document.documentElement.setAttribute("data-theme", theme);
   }, [theme]);
 
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const [itemsRes, carRes] = await Promise.all([
+          fetch("/api/items"),
+          fetch("/api/car"),
+        ]);
+        if (cancelled) return;
+        if (itemsRes.ok) {
+          const items = (await itemsRes.json()) as ItemsState;
+          setItemsState(items);
+        }
+        if (carRes.ok) {
+          const car = (await carRes.json()) as { km: number; alertDismissed: boolean };
+          setAlertDismissed(!!car.alertDismissed);
+          if (typeof car.km === "number") setServerKm(car.km);
+        }
+      } catch {
+        // ignore — keep defaults
+      } finally {
+        if (!cancelled) setLoaded(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const car = useMemo(
+    () => ({ ...CAR_INFO, km: serverKm ?? CAR_INFO.km }),
+    [serverKm],
+  );
+
   const allItems = useMemo(() => PRIORITIES.flatMap((p) => p.items), []);
   const totalDone = allItems.filter((it) => itemsState[it.id]?.done).length;
   const totalItems = allItems.length;
 
+  const putItem = (id: string, patch: { done?: boolean; price?: number | null; shop?: string | null }) => {
+    fetch("/api/items", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, ...patch }),
+    }).catch(() => {
+      // ignore — optimistic UI keeps the change locally
+    });
+  };
+
   const toggleItem = (id: string) => {
     setItemsState((prev) => {
       const current = prev[id] ?? { done: false, price: null, shop: null };
-      return { ...prev, [id]: { ...current, done: !current.done } };
+      const next = { ...current, done: !current.done };
+      putItem(id, { done: next.done });
+      return { ...prev, [id]: next };
     });
+  };
+
+  const dismissAlert = () => {
+    setAlertDismissed(true);
+    fetch("/api/car", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ alertDismissed: true }),
+    }).catch(() => {});
   };
 
   const editItem = (priorityId: string, itemId: string) => {
@@ -83,10 +138,10 @@ export default function Home() {
         onToggleMoney={() => setShowMoney(!showMoney)}
       />
 
-      <Cluster car={CAR_INFO} totalDone={totalDone} totalItems={totalItems} />
+      <Cluster car={car} totalDone={totalDone} totalItems={totalItems} />
 
-      {!alertDismissed && (
-        <AlertBanner alert={ALERT_TEXT} onDismiss={() => setAlertDismissed(true)} />
+      {loaded && !alertDismissed && (
+        <AlertBanner alert={ALERT_TEXT} onDismiss={dismissAlert} />
       )}
 
       <Filters
@@ -127,7 +182,7 @@ export default function Home() {
         )}
       </div>
 
-      <Schedule services={NEXT_SERVICES} currentKm={CAR_INFO.km} />
+      <Schedule services={NEXT_SERVICES} currentKm={car.km} />
 
       <Totals priorities={PRIORITIES} itemsState={itemsState} showMoney={showMoney} />
 
@@ -138,13 +193,15 @@ export default function Home() {
         onClose={() => setEditing(null)}
         onSave={({ price, shop }) => {
           if (!editing) return;
+          const itemId = editing.itemId;
           setItemsState((prev) => {
-            const current = prev[editing.itemId] ?? { done: false, price: null, shop: null };
+            const current = prev[itemId] ?? { done: false, price: null, shop: null };
             return {
               ...prev,
-              [editing.itemId]: { ...current, price, shop },
+              [itemId]: { ...current, price, shop },
             };
           });
+          putItem(itemId, { price, shop });
           setEditing(null);
         }}
       />
