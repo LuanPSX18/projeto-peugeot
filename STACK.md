@@ -1,6 +1,6 @@
 # STACK — decisões técnicas
 
-Este arquivo complementa o [README.md](README.md) (que é o handoff de design do Claude Design e cobre UI/UX/dados). Aqui ficam só as escolhas de **stack, ferramentas e infraestrutura** que o handoff propositalmente deixou em aberto.
+Este arquivo complementa o [README.md](README.md) (visão geral do projeto e como rodar). Aqui ficam só as escolhas de **stack, ferramentas e infraestrutura** com o "porquê" de cada uma e os detalhes que não cabem no README.
 
 ## Stack
 
