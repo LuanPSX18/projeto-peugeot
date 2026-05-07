@@ -5,9 +5,10 @@ type Props = {
   car: CarInfo;
   totalDone: number;
   totalItems: number;
+  onEditKm: () => void;
 };
 
-export function Cluster({ car, totalDone, totalItems }: Props) {
+export function Cluster({ car, totalDone, totalItems, onEditKm }: Props) {
   const pct = totalItems ? Math.round((totalDone / totalItems) * 100) : 0;
   const odoFill = Math.min(100, (car.km % 200000) / 2000);
 
@@ -29,10 +30,16 @@ export function Cluster({ car, totalDone, totalItems }: Props) {
       <div className="panel odo">
         <div>
           <div className="panel-label">Odômetro</div>
-          <div className="odo-value">
+          <button
+            className="odo-value odo-value-btn"
+            onClick={onEditKm}
+            title="Clique para editar km"
+            aria-label="Editar quilometragem"
+          >
             {fmtKm(car.km)}
             <span className="unit">KM</span>
-          </div>
+            <span className="odo-edit-hint" aria-hidden="true">✎</span>
+          </button>
         </div>
         <div>
           <div className="odo-bar">

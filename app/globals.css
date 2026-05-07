@@ -747,6 +747,39 @@ button { font-family: inherit; cursor: pointer; }
   margin-right: 4px;
 }
 
+/* ───── Odometer edit button ───── */
+.odo-value-btn {
+  appearance: none;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  font: inherit;
+  letter-spacing: inherit;
+  text-align: left;
+  transition: opacity .15s;
+}
+.odo-value-btn:hover { opacity: 0.8; }
+.odo-value-btn:hover .odo-edit-hint { opacity: 1; }
+.odo-edit-hint {
+  font-size: 14px;
+  color: var(--accent);
+  opacity: 0;
+  transition: opacity .15s;
+  margin-left: 2px;
+  align-self: center;
+}
+
+/* km-warn inside KmEditor */
+.km-warn {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--warn);
+  margin: 0 0 12px;
+  letter-spacing: 0.04em;
+}
+
 /* ───── Saving indicator ───── */
 .saving-dot {
   width: 6px;

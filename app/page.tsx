@@ -9,6 +9,7 @@ import type { PriorityFilter, StatusFilter } from "@/components/Filters";
 import { ItemEditor } from "@/components/ItemEditor";
 import { PriorityCard } from "@/components/PriorityCard";
 import { Schedule } from "@/components/Schedule";
+import { KmEditor } from "@/components/KmEditor";
 import { Toast } from "@/components/Toast";
 import { TopBar } from "@/components/TopBar";
 import { Totals } from "@/components/Totals";
@@ -31,6 +32,7 @@ export default function Home() {
   const [status, setStatus] = useState<StatusFilter>("all");
   const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>("all");
   const [editing, setEditing] = useState<{ priorityId: string; itemId: string } | null>(null);
+  const [editingKm, setEditingKm] = useState(false);
 
   const [savingCount, setSavingCount] = useState(0);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
@@ -113,20 +115,33 @@ export default function Home() {
     });
   };
 
-  const dismissAlert = () => {
-    setAlertDismissed(true);
+  const putCar = (
+    patch: { km?: number; alertDismissed?: boolean },
+    onError?: () => void,
+  ) => {
     setSavingCount((c) => c + 1);
     fetch("/api/car", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ alertDismissed: true }),
+      body: JSON.stringify(patch),
     })
       .then((res) => { if (!res.ok) throw new Error(); })
       .catch(() => {
-        setAlertDismissed(false);
+        onError?.();
         showToast("Falha ao salvar — tente de novo");
       })
       .finally(() => setSavingCount((c) => c - 1));
+  };
+
+  const dismissAlert = () => {
+    setAlertDismissed(true);
+    putCar({ alertDismissed: true }, () => setAlertDismissed(false));
+  };
+
+  const handleSaveKm = (km: number) => {
+    const prev = serverKm;
+    setServerKm(km);
+    putCar({ km }, () => setServerKm(prev));
   };
 
   const editItem = (priorityId: string, itemId: string) => {
@@ -167,7 +182,7 @@ export default function Home() {
         saving={savingCount > 0}
       />
 
-      <Cluster car={car} totalDone={totalDone} totalItems={totalItems} />
+      <Cluster car={car} totalDone={totalDone} totalItems={totalItems} onEditKm={() => setEditingKm(true)} />
 
       {loaded && !alertDismissed && (
         <AlertBanner alert={ALERT_TEXT} onDismiss={dismissAlert} />
@@ -237,6 +252,13 @@ export default function Home() {
           setEditing(null);
         }}
       />
+      <KmEditor
+        open={editingKm}
+        currentKm={car.km}
+        onClose={() => setEditingKm(false)}
+        onSave={handleSaveKm}
+      />
+
       {toastMsg && (
         <Toast message={toastMsg} onClose={() => setToastMsg(null)} />
       )}
