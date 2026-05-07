@@ -747,5 +747,54 @@ button { font-family: inherit; cursor: pointer; }
   margin-right: 4px;
 }
 
+/* ───── Saving indicator ───── */
+.saving-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--accent);
+  animation: saving-pulse 1s ease-in-out infinite;
+}
+@keyframes saving-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+
+/* ───── Error toast ───── */
+.toast {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  background: var(--bg-elev);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-lg);
+  padding: 10px 14px 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--fg);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.45);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.toast-close {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  color: var(--fg-faint);
+  font-size: 14px;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: color .15s;
+}
+.toast-close:hover { color: var(--fg); }
+
 /* small util */
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }

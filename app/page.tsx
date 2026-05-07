@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { AlertBanner } from "@/components/AlertBanner";
 import { Cluster } from "@/components/Cluster";
@@ -9,6 +9,7 @@ import type { PriorityFilter, StatusFilter } from "@/components/Filters";
 import { ItemEditor } from "@/components/ItemEditor";
 import { PriorityCard } from "@/components/PriorityCard";
 import { Schedule } from "@/components/Schedule";
+import { Toast } from "@/components/Toast";
 import { TopBar } from "@/components/TopBar";
 import { Totals } from "@/components/Totals";
 
@@ -30,6 +31,15 @@ export default function Home() {
   const [status, setStatus] = useState<StatusFilter>("all");
   const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>("all");
   const [editing, setEditing] = useState<{ priorityId: string; itemId: string } | null>(null);
+
+  const [savingCount, setSavingCount] = useState(0);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const showToast = (msg: string) => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    setToastMsg(msg);
+    toastTimerRef.current = setTimeout(() => setToastMsg(null), 4000);
+  };
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -73,32 +83,50 @@ export default function Home() {
   const totalDone = allItems.filter((it) => itemsState[it.id]?.done).length;
   const totalItems = allItems.length;
 
-  const putItem = (id: string, patch: { done?: boolean; price?: number | null; shop?: string | null }) => {
+  const putItem = (
+    id: string,
+    patch: { done?: boolean; price?: number | null; shop?: string | null },
+    onError?: () => void,
+  ) => {
+    setSavingCount((c) => c + 1);
     fetch("/api/items", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id, ...patch }),
-    }).catch(() => {
-      // ignore — optimistic UI keeps the change locally
-    });
+    })
+      .then((res) => { if (!res.ok) throw new Error(); })
+      .catch(() => {
+        onError?.();
+        showToast("Falha ao salvar — tente de novo");
+      })
+      .finally(() => setSavingCount((c) => c - 1));
   };
 
   const toggleItem = (id: string) => {
     setItemsState((prev) => {
       const current = prev[id] ?? { done: false, price: null, shop: null };
       const next = { ...current, done: !current.done };
-      putItem(id, { done: next.done });
+      putItem(id, { done: next.done }, () => {
+        setItemsState((s) => ({ ...s, [id]: current }));
+      });
       return { ...prev, [id]: next };
     });
   };
 
   const dismissAlert = () => {
     setAlertDismissed(true);
+    setSavingCount((c) => c + 1);
     fetch("/api/car", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ alertDismissed: true }),
-    }).catch(() => {});
+    })
+      .then((res) => { if (!res.ok) throw new Error(); })
+      .catch(() => {
+        setAlertDismissed(false);
+        showToast("Falha ao salvar — tente de novo");
+      })
+      .finally(() => setSavingCount((c) => c - 1));
   };
 
   const editItem = (priorityId: string, itemId: string) => {
@@ -136,6 +164,7 @@ export default function Home() {
         onToggleTheme={() => setTheme(theme === "dark" ? "light" : "dark")}
         showMoney={showMoney}
         onToggleMoney={() => setShowMoney(!showMoney)}
+        saving={savingCount > 0}
       />
 
       <Cluster car={car} totalDone={totalDone} totalItems={totalItems} />
@@ -194,17 +223,23 @@ export default function Home() {
         onSave={({ price, shop }) => {
           if (!editing) return;
           const itemId = editing.itemId;
+          const snapshot = itemsState[itemId];
           setItemsState((prev) => {
             const current = prev[itemId] ?? { done: false, price: null, shop: null };
-            return {
-              ...prev,
-              [itemId]: { ...current, price, shop },
-            };
+            return { ...prev, [itemId]: { ...current, price, shop } };
           });
-          putItem(itemId, { price, shop });
+          putItem(itemId, { price, shop }, () => {
+            setItemsState((s) => ({
+              ...s,
+              [itemId]: snapshot ?? { done: !!s[itemId]?.done, price: null, shop: null },
+            }));
+          });
           setEditing(null);
         }}
       />
+      {toastMsg && (
+        <Toast message={toastMsg} onClose={() => setToastMsg(null)} />
+      )}
     </div>
   );
 }

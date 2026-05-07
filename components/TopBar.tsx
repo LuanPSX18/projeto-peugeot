@@ -9,14 +9,16 @@ type Props = {
   onToggleTheme: () => void;
   showMoney: boolean;
   onToggleMoney: () => void;
+  saving?: boolean;
 };
 
-export function TopBar({ theme, onToggleTheme, showMoney, onToggleMoney }: Props) {
+export function TopBar({ theme, onToggleTheme, showMoney, onToggleMoney, saving }: Props) {
   return (
     <div className="topbar">
       <div className="brand">
         <span className="brand-mark" aria-hidden="true" />
         <span>Garage&nbsp;OS · v1.0</span>
+        {saving && <span className="saving-dot" aria-label="Salvando..." title="Salvando..." />}
       </div>
       <div className="topbar-actions">
         <button
