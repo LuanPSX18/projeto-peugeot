@@ -8,6 +8,7 @@ type CardProps = {
   priority: Priority;
   itemsState: ItemsState;
   showMoney: boolean;
+  isAuthed: boolean;
   onToggle: (itemId: string) => void;
   onEdit: (itemId: string) => void;
 };
@@ -18,6 +19,7 @@ type ItemRowProps = {
   price: number | null;
   shop: string | null;
   showMoney: boolean;
+  isAuthed: boolean;
   onToggle: () => void;
   onEdit: () => void;
 };
@@ -28,17 +30,20 @@ function CheckRow({
   price,
   shop,
   showMoney,
+  isAuthed,
   onToggle,
   onEdit,
 }: ItemRowProps) {
   return (
-    <li className={`check-item ${done ? "done" : ""}`} onDoubleClick={onEdit}>
+    <li className={`check-item ${done ? "done" : ""}`} onDoubleClick={isAuthed ? onEdit : undefined}>
       <button
         className="check-box"
         role="checkbox"
         aria-checked={done}
-        onClick={onToggle}
+        onClick={isAuthed ? onToggle : undefined}
         aria-label={done ? "Desmarcar" : "Marcar como feito"}
+        disabled={!isAuthed}
+        title={!isAuthed ? "Faça login para editar" : undefined}
       />
       <div className="check-body">
         <div className="check-name">{item.name}</div>
@@ -48,16 +53,17 @@ function CheckRow({
         <button
           type="button"
           className={`check-price ${!price && showMoney ? "empty" : ""}`}
-          onClick={onEdit}
+          onClick={isAuthed ? onEdit : undefined}
+          disabled={!isAuthed}
           style={{
             background: "transparent",
             border: 0,
             color: "inherit",
             padding: 0,
-            cursor: "pointer",
+            cursor: isAuthed ? "pointer" : "default",
             font: "inherit",
           }}
-          title={showMoney ? "Editar valor / oficina" : "Editar oficina"}
+          title={isAuthed ? (showMoney ? "Editar valor / oficina" : "Editar oficina") : undefined}
         >
           {showMoney ? (price ? `R$ ${fmtMoney(price)}` : "—") : "····"}
         </button>
@@ -75,6 +81,7 @@ export function PriorityCard({
   priority,
   itemsState,
   showMoney,
+  isAuthed,
   onToggle,
   onEdit,
 }: CardProps) {
@@ -123,6 +130,7 @@ export function PriorityCard({
               price={state?.price ?? null}
               shop={state?.shop ?? null}
               showMoney={showMoney}
+              isAuthed={isAuthed}
               onToggle={() => onToggle(it.id)}
               onEdit={() => onEdit(it.id)}
             />

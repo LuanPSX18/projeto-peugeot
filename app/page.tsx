@@ -18,6 +18,7 @@ import { Totals } from "@/components/Totals";
 import { ALERT_TEXT, CAR_INFO, NEXT_SERVICES, PRIORITIES } from "@/lib/data";
 import type { ItemsState, MaintenanceLog } from "@/lib/types";
 import { usePersistentState } from "@/lib/usePersistentState";
+import { getSupabaseBrowser } from "@/lib/supabase-browser";
 
 type Theme = "dark" | "light";
 
@@ -29,6 +30,7 @@ export default function Home() {
   const [alertDismissed, setAlertDismissed] = useState<boolean>(false);
   const [serverKm, setServerKm] = useState<number | null>(null);
   const [maintenanceLog, setMaintenanceLog] = useState<MaintenanceLog[]>([]);
+  const [isAuthed, setIsAuthed] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
   const [status, setStatus] = useState<StatusFilter>("all");
@@ -53,11 +55,14 @@ export default function Home() {
     let cancelled = false;
     (async () => {
       try {
-        const [itemsRes, carRes, logRes] = await Promise.all([
+        const supabase = getSupabaseBrowser();
+        const [{ data: { user } }, itemsRes, carRes, logRes] = await Promise.all([
+          supabase.auth.getUser(),
           fetch("/api/items"),
           fetch("/api/car"),
           fetch("/api/maintenance"),
         ]);
+        if (!cancelled) setIsAuthed(!!user);
         if (cancelled) return;
         if (itemsRes.ok) {
           const items = (await itemsRes.json()) as ItemsState;
@@ -187,6 +192,11 @@ export default function Home() {
     putCar({ km }, () => setServerKm(prev));
   };
 
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    setIsAuthed(false);
+  };
+
   const editItem = (priorityId: string, itemId: string) => {
     setEditing({ priorityId, itemId });
   };
@@ -223,9 +233,11 @@ export default function Home() {
         showMoney={showMoney}
         onToggleMoney={() => setShowMoney(!showMoney)}
         saving={savingCount > 0}
+        isAuthed={isAuthed}
+        onLogout={handleLogout}
       />
 
-      <Cluster car={car} totalDone={totalDone} totalItems={totalItems} onEditKm={() => setEditingKm(true)} />
+      <Cluster car={car} totalDone={totalDone} totalItems={totalItems} onEditKm={() => setEditingKm(true)} isAuthed={isAuthed} />
 
       {loaded && !alertDismissed && (
         <AlertBanner alert={ALERT_TEXT} onDismiss={dismissAlert} />
@@ -246,6 +258,7 @@ export default function Home() {
             priority={p}
             itemsState={itemsState}
             showMoney={showMoney}
+            isAuthed={isAuthed}
             onToggle={toggleItem}
             onEdit={(itemId) => editItem(p.id, itemId)}
           />

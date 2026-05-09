@@ -907,5 +907,51 @@ button { font-family: inherit; cursor: pointer; }
   white-space: nowrap;
 }
 
+/* ───── Página de login ───── */
+.login-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+.login-box {
+  width: 100%;
+  max-width: 360px;
+  background: var(--bg-elev);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-lg);
+  padding: 28px 24px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+}
+.login-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+  margin-bottom: 20px;
+}
+.login-brand-name { color: var(--accent); }
+.login-sub {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--fg-faint);
+  margin: 0 0 20px;
+  text-transform: uppercase;
+}
+.login-form { display: flex; flex-direction: column; gap: 0; }
+.login-error {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--danger);
+  margin: 0 0 12px;
+  letter-spacing: 0.04em;
+}
+.login-btn { width: 100%; justify-content: center; margin-top: 4px; }
+
 /* small util */
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }

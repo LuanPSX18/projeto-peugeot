@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getSupabaseAdmin } from "@/lib/supabase";
+import { getSessionUser } from "@/lib/supabase-server";
 import type { ItemsState } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -34,6 +35,9 @@ export async function GET() {
 }
 
 export async function PUT(request: Request) {
+  const user = await getSessionUser();
+  if (!user) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+
   let body: unknown;
   try {
     body = await request.json();

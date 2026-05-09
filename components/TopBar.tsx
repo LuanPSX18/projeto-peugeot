@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { EyeIcon, EyeOffIcon, MoonIcon, SunIcon } from "./Icons";
 
 type Theme = "dark" | "light";
@@ -10,9 +11,25 @@ type Props = {
   showMoney: boolean;
   onToggleMoney: () => void;
   saving?: boolean;
+  isAuthed: boolean;
+  onLogout: () => void;
 };
 
-export function TopBar({ theme, onToggleTheme, showMoney, onToggleMoney, saving }: Props) {
+const LockIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="11" width="18" height="11" rx="2" />
+    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+  </svg>
+);
+
+const UnlockIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="11" width="18" height="11" rx="2" />
+    <path d="M7 11V7a5 5 0 0 1 9.9-1" />
+  </svg>
+);
+
+export function TopBar({ theme, onToggleTheme, showMoney, onToggleMoney, saving, isAuthed, onLogout }: Props) {
   return (
     <div className="topbar">
       <div className="brand">
@@ -37,6 +54,27 @@ export function TopBar({ theme, onToggleTheme, showMoney, onToggleMoney, saving 
         >
           {theme === "dark" ? <SunIcon /> : <MoonIcon />}
         </button>
+        {isAuthed ? (
+          <button
+            className="icon-btn"
+            onClick={onLogout}
+            title="Sair"
+            aria-label="Sair"
+            style={{ color: "var(--accent)" }}
+          >
+            <UnlockIcon />
+          </button>
+        ) : (
+          <Link
+            href="/login"
+            className="icon-btn"
+            title="Entrar"
+            aria-label="Entrar"
+            style={{ display: "grid", placeItems: "center" }}
+          >
+            <LockIcon />
+          </Link>
+        )}
       </div>
     </div>
   );
