@@ -47,9 +47,17 @@ export function HistoryLog({ entries, showMoney }: Props) {
                 )}
               </div>
             </div>
-            {showMoney && e.price != null && (
-              <div className="hist-price">{fmtMoney(e.price)}</div>
-            )}
+            <div className="hist-right">
+              {showMoney && e.price != null && (
+                <div className="hist-price">{fmtMoney(e.price)}</div>
+              )}
+              {e.receipt_url && (
+                <a href={e.receipt_url} target="_blank" rel="noopener noreferrer" className="hist-thumb-link">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={e.receipt_url} alt="Nota fiscal" className="hist-thumb" />
+                </a>
+              )}
+            </div>
           </div>
         ))}
       </div>

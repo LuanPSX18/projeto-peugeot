@@ -38,6 +38,7 @@ export type MaintenanceLog = {
   km_at: number;
   price: number | null;
   shop: string | null;
+  receipt_url: string | null;
 };
 
 export type CarInfo = {

@@ -7,19 +7,23 @@ type Props = {
   open: boolean;
   item: PriorityItem | null;
   state: ItemState | undefined;
+  logEntryId: number | null;
   onClose: () => void;
-  onSave: (data: { price: number | null; shop: string | null }) => void;
+  onSave: (data: { price: number | null; shop: string | null; file: File | null }) => void;
 };
 
-export function ItemEditor({ open, item, state, onClose, onSave }: Props) {
+export function ItemEditor({ open, item, state, logEntryId, onClose, onSave }: Props) {
   const [price, setPrice] = useState("");
   const [shop, setShop] = useState("");
+  const [file, setFile] = useState<File | null>(null);
   const priceRef = useRef<HTMLInputElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (open) {
       setPrice(state?.price != null ? String(state.price) : "");
       setShop(state?.shop ?? "");
+      setFile(null);
       const t = setTimeout(() => priceRef.current?.focus(), 50);
       return () => clearTimeout(t);
     }
@@ -35,8 +39,10 @@ export function ItemEditor({ open, item, state, onClose, onSave }: Props) {
       cleanPrice = Number.isFinite(parsed) ? parsed : null;
     }
     const cleanShop = shop.trim();
-    onSave({ price: cleanPrice, shop: cleanShop === "" ? null : cleanShop });
+    onSave({ price: cleanPrice, shop: cleanShop === "" ? null : cleanShop, file });
   };
+
+  const canAttach = logEntryId !== null;
 
   return (
     <div className="editor-overlay" onClick={onClose}>
@@ -63,6 +69,21 @@ export function ItemEditor({ open, item, state, onClose, onSave }: Props) {
             placeholder="Ex: Auto Center XYZ"
           />
         </div>
+        {canAttach && (
+          <div className="field">
+            <label>Nota fiscal (foto)</label>
+            <label className={`receipt-file-btn${file ? " has-file" : ""}`}>
+              {file ? file.name : "Selecionar arquivo…"}
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                style={{ display: "none" }}
+                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              />
+            </label>
+          </div>
+        )}
         <div className="editor-actions">
           <button type="button" className="btn" onClick={onClose}>Cancelar</button>
           <button type="button" className="btn primary" onClick={handleSave}>Salvar</button>

@@ -628,6 +628,26 @@ button { font-family: inherit; cursor: pointer; }
   display: flex; gap: 8px; justify-content: flex-end;
   margin-top: 16px;
 }
+.receipt-file-btn {
+  display: block;
+  width: 100%;
+  background: var(--bg);
+  border: 1px dashed var(--line-strong);
+  color: var(--fg-faint);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  padding: 9px 11px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: border-color .15s, color .15s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
+}
+.receipt-file-btn:hover { border-color: var(--fg-faint); color: var(--fg); }
+.receipt-file-btn.has-file { color: var(--fg); border-style: solid; border-color: var(--accent); }
 .btn {
   appearance: none;
   background: transparent;
@@ -872,6 +892,11 @@ button { font-family: inherit; cursor: pointer; }
   background: var(--bg-elev);
   transition: background .12s;
 }
+.hist-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 .hist-entry:last-child { border-bottom: 0; }
 .hist-entry:hover { background: var(--bg-elev-2); }
 .hist-dot {
@@ -906,6 +931,17 @@ button { font-family: inherit; cursor: pointer; }
   color: var(--fg);
   white-space: nowrap;
 }
+.hist-thumb-link { display: block; flex-shrink: 0; }
+.hist-thumb {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: var(--radius);
+  border: 1px solid var(--line-strong);
+  display: block;
+  transition: opacity .15s;
+}
+.hist-thumb:hover { opacity: 0.8; }
 
 /* ───── Página de login ───── */
 .login-page {

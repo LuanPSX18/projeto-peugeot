@@ -209,6 +209,12 @@ export default function Home() {
 
   const editingState = editing ? itemsState[editing.itemId] : undefined;
 
+  const editingLogEntryId = useMemo(() => {
+    if (!editing) return null;
+    const entry = maintenanceLog.find((e) => e.item_id === editing.itemId);
+    return entry?.id ?? null;
+  }, [editing, maintenanceLog]);
+
   const visiblePriorities = useMemo(() => {
     return PRIORITIES.filter(
       (p) => priorityFilter === "all" || p.id === priorityFilter,
@@ -292,10 +298,12 @@ export default function Home() {
         open={!!editing}
         item={editingItem}
         state={editingState}
+        logEntryId={editingLogEntryId}
         onClose={() => setEditing(null)}
-        onSave={({ price, shop }) => {
+        onSave={({ price, shop, file }) => {
           if (!editing) return;
           const itemId = editing.itemId;
+          const logId = editingLogEntryId;
           const snapshot = itemsState[itemId];
           setItemsState((prev) => {
             const current = prev[itemId] ?? { done: false, price: null, shop: null };
@@ -308,6 +316,26 @@ export default function Home() {
             }));
           });
           setEditing(null);
+          if (file && logId !== null) {
+            setSavingCount((c) => c + 1);
+            const form = new FormData();
+            form.append("file", file);
+            fetch("/api/upload", { method: "POST", body: form })
+              .then((res) => { if (!res.ok) throw new Error(); return res.json(); })
+              .then(({ path }: { path: string }) =>
+                fetch(`/api/maintenance?id=${logId}`, {
+                  method: "PATCH",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ receipt_path: path }),
+                }),
+              )
+              .then((res) => { if (!res.ok) throw new Error(); return res.json(); })
+              .then((updated: MaintenanceLog) => {
+                setMaintenanceLog((prev) => prev.map((e) => (e.id === logId ? updated : e)));
+              })
+              .catch(() => showToast("Falha ao anexar foto — tente de novo"))
+              .finally(() => setSavingCount((c) => c - 1));
+          }
         }}
       />
       <KmEditor
