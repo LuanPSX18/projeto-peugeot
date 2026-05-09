@@ -4,15 +4,15 @@ export const CAR_INFO: CarInfo = {
   model: "Peugeot 2008",
   year: "2017",
   engine: "1.6 Automático",
-  km: 147612,
+  km: 147765,
   lastService: null,
 };
 
 export const NEXT_SERVICES: ScheduleEntry[] = [
-  { label: "Próxima troca de óleo", every: 10000, lastKm: 142000 },
-  { label: "Alinhamento", every: 10000, lastKm: 140000 },
-  { label: "Filtro de ar", every: 20000, lastKm: 130000 },
-  { label: "Líquido de arrefecimento", every: 40000, lastKm: 110000 },
+  { label: "Próxima troca de óleo", every: 10000, lastKm: 142000, linkedItemIds: ["p2-1", "p2-2"] },
+  { label: "Alinhamento", every: 10000, lastKm: 140000, linkedItemIds: ["p6-4"] },
+  { label: "Filtro de ar", every: 20000, lastKm: 130000, linkedItemIds: ["p2-3"] },
+  { label: "Líquido de arrefecimento", every: 40000, lastKm: 110000, linkedItemIds: ["p3-1"] },
 ];
 
 export const PRIORITIES: Priority[] = [

@@ -6,6 +6,7 @@ import { AlertBanner } from "@/components/AlertBanner";
 import { Cluster } from "@/components/Cluster";
 import { Filters } from "@/components/Filters";
 import type { PriorityFilter, StatusFilter } from "@/components/Filters";
+import { HistoryLog } from "@/components/HistoryLog";
 import { ItemEditor } from "@/components/ItemEditor";
 import { PriorityCard } from "@/components/PriorityCard";
 import { Schedule } from "@/components/Schedule";
@@ -15,7 +16,7 @@ import { TopBar } from "@/components/TopBar";
 import { Totals } from "@/components/Totals";
 
 import { ALERT_TEXT, CAR_INFO, NEXT_SERVICES, PRIORITIES } from "@/lib/data";
-import type { ItemsState } from "@/lib/types";
+import type { ItemsState, MaintenanceLog } from "@/lib/types";
 import { usePersistentState } from "@/lib/usePersistentState";
 
 type Theme = "dark" | "light";
@@ -27,6 +28,7 @@ export default function Home() {
   const [itemsState, setItemsState] = useState<ItemsState>({});
   const [alertDismissed, setAlertDismissed] = useState<boolean>(false);
   const [serverKm, setServerKm] = useState<number | null>(null);
+  const [maintenanceLog, setMaintenanceLog] = useState<MaintenanceLog[]>([]);
   const [loaded, setLoaded] = useState(false);
 
   const [status, setStatus] = useState<StatusFilter>("all");
@@ -51,9 +53,10 @@ export default function Home() {
     let cancelled = false;
     (async () => {
       try {
-        const [itemsRes, carRes] = await Promise.all([
+        const [itemsRes, carRes, logRes] = await Promise.all([
           fetch("/api/items"),
           fetch("/api/car"),
+          fetch("/api/maintenance"),
         ]);
         if (cancelled) return;
         if (itemsRes.ok) {
@@ -64,6 +67,10 @@ export default function Home() {
           const car = (await carRes.json()) as { km: number; alertDismissed: boolean };
           setAlertDismissed(!!car.alertDismissed);
           if (typeof car.km === "number") setServerKm(car.km);
+        }
+        if (logRes.ok) {
+          const log = (await logRes.json()) as MaintenanceLog[];
+          setMaintenanceLog(log);
         }
       } catch {
         // ignore — keep defaults
@@ -84,6 +91,32 @@ export default function Home() {
   const allItems = useMemo(() => PRIORITIES.flatMap((p) => p.items), []);
   const totalDone = allItems.filter((it) => itemsState[it.id]?.done).length;
   const totalItems = allItems.length;
+
+  const derivedServices = useMemo(() => {
+    return NEXT_SERVICES.map((s) => {
+      if (!s.linkedItemIds?.length) return s;
+      const relevant = maintenanceLog
+        .filter((e) => s.linkedItemIds!.includes(e.item_id))
+        .sort((a, b) => b.km_at - a.km_at);
+      if (relevant.length === 0) return s;
+      return { ...s, lastKm: relevant[0].km_at };
+    });
+  }, [maintenanceLog]);
+
+  const postMaintenance = (entry: Omit<MaintenanceLog, "id" | "done_at">) => {
+    fetch("/api/maintenance", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(entry),
+    })
+      .then((res) => { if (!res.ok) throw new Error(); return res.json(); })
+      .then((created: MaintenanceLog) => {
+        setMaintenanceLog((prev) => [created, ...prev]);
+      })
+      .catch(() => {
+        showToast("Falha ao registrar no histórico");
+      });
+  };
 
   const putItem = (
     id: string,
@@ -108,6 +141,16 @@ export default function Home() {
     setItemsState((prev) => {
       const current = prev[id] ?? { done: false, price: null, shop: null };
       const next = { ...current, done: !current.done };
+      if (next.done) {
+        const item = allItems.find((it) => it.id === id);
+        postMaintenance({
+          item_id: id,
+          item_name: item?.name ?? id,
+          km_at: serverKm ?? CAR_INFO.km,
+          price: current.price,
+          shop: current.shop,
+        });
+      }
       putItem(id, { done: next.done }, () => {
         setItemsState((s) => ({ ...s, [id]: current }));
       });
@@ -226,9 +269,11 @@ export default function Home() {
         )}
       </div>
 
-      <Schedule services={NEXT_SERVICES} currentKm={car.km} />
+      <Schedule services={derivedServices} currentKm={car.km} />
 
       <Totals priorities={PRIORITIES} itemsState={itemsState} showMoney={showMoney} />
+
+      <HistoryLog entries={maintenanceLog} showMoney={showMoney} />
 
       <ItemEditor
         open={!!editing}

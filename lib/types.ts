@@ -27,6 +27,17 @@ export type ScheduleEntry = {
   label: string;
   every: number;
   lastKm: number;
+  linkedItemIds?: string[];
+};
+
+export type MaintenanceLog = {
+  id: number;
+  item_id: string;
+  item_name: string;
+  done_at: string;
+  km_at: number;
+  price: number | null;
+  shop: string | null;
 };
 
 export type CarInfo = {
