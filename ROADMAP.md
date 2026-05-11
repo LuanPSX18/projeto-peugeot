@@ -13,6 +13,11 @@ Este documento lista o que já foi entregue e o que vem pela frente. Cada passo 
 | C | UI completa portada do protótipo HTML pra React + TS |
 | D | Persistência no Supabase via API routes (`/api/items`, `/api/car`) |
 | E | Deploy público na Vercel + auto-deploy a cada `git push origin main` |
+| F | Feedback visual de "salvando…" — indicador na TopBar + toast de erro + rollback |
+| G | Editar km do carro pela UI — modal no odômetro, `PUT /api/car`, optimistic update |
+| H | Histórico de manutenção — tabela `maintenance_log`, timeline cronológica, filtro por item |
+| I | Foto da nota fiscal — Supabase Storage (bucket privado), upload via `/api/upload`, signed URLs, miniatura no histórico |
+| J | Auth com Supabase — login email/senha, middleware, leitura pública / edição restrita ao dono |
 
 URL pública: https://projeto-peugeot.vercel.app
 Repositório: https://github.com/LuanPSX18/projeto-peugeot
@@ -145,20 +150,19 @@ Repositório: https://github.com/LuanPSX18/projeto-peugeot
 
 **Objetivo:** fazer o README do GitHub vender o projeto visualmente em 3 segundos.
 
-**Porquê:** hoje o README é texto puro. Quem cai lá pelo seu portfólio (recrutador, amigo dev) leva alguns segundos pra entender o que é. Uma screenshot resolve isso na hora — antes mesmo de ler o título.
+**Porquê:** quem cai lá pelo portfólio (recrutador, amigo dev) leva alguns segundos pra entender o que é. Uma screenshot resolve isso antes mesmo de ler o título.
 
-**O que fazer:**
+**O que já foi feito:**
+- README reescrito com a lista de features completa (F–J incluídas) e pasta `docs/screenshots/` criada.
+- Slot de imagem já está no README: `![Tela principal](docs/screenshots/main-dark.png)`.
+
+**O que ainda falta (você faz, não é código):**
 - Tirar screenshots em **alta resolução** (Retina / 2x):
-  - Tela principal (desktop, dark mode) — o "money shot".
-  - Mesma tela em mobile (celular real ou DevTools) — mostra responsividade.
-  - Modal do editor aberto.
-  - (Opcional) tela light mode.
-- Salvar em `docs/screenshots/` no repo.
-- Adicionar no topo do README, logo após a descrição:
-  ```markdown
-  ![Tela principal](docs/screenshots/main-dark.png)
-  ```
-- Considerar um GIF curto (15-20s) mostrando a interação: marcar item → editar preço → ver salvar → recarregar → continua marcado. Ferramentas: ScreenToGif (Windows, gratuito).
+  - Tela principal (desktop, dark mode) → salvar como `docs/screenshots/main-dark.png`.
+  - Mesma tela em mobile (DevTools → toggle device) → `docs/screenshots/main-mobile.png`.
+  - (Opcional) modal do editor aberto, tela light mode.
+- Considerar um GIF curto (15-20s): marcar item → editar preço → salvar → recarregar → continua marcado. Ferramenta: **ScreenToGif** (Windows, gratuito).
+- Commitar as imagens e fazer `git push`.
 
 **Feito quando:**
 - Acessar https://github.com/LuanPSX18/projeto-peugeot e a primeira coisa visível abaixo da descrição é a screenshot.
